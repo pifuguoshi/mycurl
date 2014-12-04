@@ -2,8 +2,10 @@ package curl
 import ("encoding/json"
         "io/ioutil"
         "net/http"
-        "bytes"
+        //"bytes"
         "logs"
+        "net/url"
+        "strings"
        )
 
 func checkErr(err error) {
@@ -21,14 +23,19 @@ func  CurlPost(addr string, buf interface{}) {
         defer handleErr()
         // 将需要上传的JSON转为Byte
         v, _ := json.Marshal(buf)
+        params:=string(v);
+        values:=url.Values{};
+        values.Set("params",params);
         // 上传JSON数据
-        req, e := http.NewRequest("POST", addr, bytes.NewReader(v))
+        //postDataBytes := []byte(values.Encode())
+        //req, e := http.NewRequest("POST", addr,bytes.NewReader(postDataBytes))
+        req, e := http.NewRequest("POST", addr,strings.NewReader(values.Encode()))
         if e != nil {
             // 提交异常,返回错误
             logs.Logger.Infof("new request failed %#v",req);
         }
+        req.Header.Add("Content-Type", "application/x-www-form-urlencoded;param=value")
         // Body Type
-        req.Header.Set("Content-Type", "application/json")
         // 完成后断开连接
         req.Header.Set("Connection", "close")
         res,err := client.Do(req)
